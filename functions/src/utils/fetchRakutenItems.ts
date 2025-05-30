@@ -6,9 +6,13 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 const applicationId = config().rakuten?.app_id ?? process.env.RAKUTEN_APP_ID;
+const affiliateId = config().rakuten?.affiliate_id ?? process.env.RAKUTEN_AFFILIATE_ID;
 
 if (!applicationId) {
   throw new Error("Rakuten Application ID が未設定です");
+}
+if (!affiliateId) {
+  throw new Error("Rakuten Affiliate ID が未設定です");
 }
 
 // ✅ Rakuten API レスポンス型を定義
@@ -18,6 +22,8 @@ type RakutenResponse = {
       itemCode: string;
       itemName: string;
       itemPrice: number;
+      itemUrl: string;
+      affiliateUrl?: string;
       mediumImageUrls: { imageUrl: string }[];
     };
   }[];
@@ -26,12 +32,11 @@ type RakutenResponse = {
 export async function fetchRakutenItems(keyword: string): Promise<void> {
   const url = `https://app.rakuten.co.jp/services/api/IchibaItem/Search/20220601?format=json&keyword=${encodeURIComponent(
     keyword
-  )}&applicationId=${applicationId}&hits=30&sort=-updateTimestamp`;
+  )}&applicationId=${applicationId}&affiliateId=${affiliateId}&hits=30&sort=-updateTimestamp`;
 
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Rakuten API fetch failed: ${res.status}`);
 
-  // ✅ 型アサーション追加
   const data = (await res.json()) as RakutenResponse;
 
   const now = new Date();
@@ -44,6 +49,8 @@ export async function fetchRakutenItems(keyword: string): Promise<void> {
       itemName: item.itemName,
       price: item.itemPrice,
       imageUrl: item.mediumImageUrls?.[0]?.imageUrl ?? "",
+      itemUrl: item.itemUrl,
+      affiliateUrl: item.affiliateUrl ?? "", // ✅ アフィリエイトリンクも保存
       createdAt: now.toISOString()
     });
 

@@ -1,16 +1,16 @@
-// functions/src/utils/fetchImage.ts
 import fetch from "node-fetch";
-import { config } from "firebase-functions";
 import * as dotenv from "dotenv";
-dotenv.config(); // .env対応
+dotenv.config(); // ← ローカル用に必須
 
-const accessKey = config()?.unsplash?.access_key ?? process.env.UNSPLASH_ACCESS_KEY;
+import { config } from "firebase-functions";
+
+// ✅ ローカル優先 → Firebase の順で参照
+const accessKey = process.env.UNSPLASH_ACCESS_KEY || config()?.unsplash?.access_key;
 
 if (!accessKey) {
   throw new Error("Unsplash APIキーが未設定です");
 }
 
-// ✅ Unsplash API のレスポンス型を定義
 type UnsplashResponse = {
   results: {
     urls: {
@@ -21,14 +21,15 @@ type UnsplashResponse = {
 };
 
 export async function fetchCoverImage(keyword: string): Promise<string> {
-  const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(keyword)}&client_id=${accessKey}`;
+  const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(
+    keyword
+  )}&client_id=${accessKey}`;
 
   const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`Unsplash API request failed: ${res.status}`);
   }
 
-  // ✅ 型アサーションを追加
   const data = (await res.json()) as UnsplashResponse;
 
   if (!data.results || data.results.length === 0) {

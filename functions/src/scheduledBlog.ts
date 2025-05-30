@@ -1,21 +1,25 @@
-import path from "path";
-import dotenv from "dotenv";
-dotenv.config({ path: path.resolve(__dirname, "../.env") });
-
 import { generateBlogContent } from "./prompts/blogPrompt";
 import { fetchCoverImage } from "./utils/fetchImage";
 import { postBlog } from "./utils/postBlog";
 import { getMonitoredItemRandom } from "./utils/getMonitoredItem";
-import { db } from "./firebaseAdmin"; // ← 追加
+import { extractTagsFromFeatures } from "./utils/extractTags";
+import { db } from "./firebaseAdmin";
 
 export async function scheduledBlog() {
   try {
     console.log("🔁 自動投稿スクリプト開始");
 
     const item = await getMonitoredItemRandom();
-    const { productName, price, features, imageKeyword, id: productId } = item;
+    const {
+      productName,
+      price,
+      features,
+      imageKeyword,
+      id: productId,
+      featureHighlights = []
+    } = item;
 
-    // ✅ 1. 重複チェックを追加
+    // ✅ 重複チェック
     const existingBlogs = await db
       .collection("blogs")
       .where("productId", "==", productId)
@@ -27,19 +31,20 @@ export async function scheduledBlog() {
       return { success: false, reason: "duplicate", productId };
     }
 
-    // ✅ 2. 通常通りブログ生成
+    // ✅ タグ自動生成
+    const tags = await extractTagsFromFeatures(featureHighlights);
+    console.log("🏷️ 抽出タグ:", tags);
+
+    // ✅ ブログ生成
     const title = `${productName} レビューとおすすめポイント`;
     const slug = `blog-${Date.now()}`;
-    const category = "ゲーミングチェア";
-    const rawTags = ["ゲーミングチェア", productName, "在宅ワーク"];
-    const tags = rawTags.filter(
-      (tag): tag is string => typeof tag === "string" && tag.trim() !== ""
-    );
+    const category = "スマホ周辺機器";
 
     const content = await generateBlogContent({
       productName,
       price,
-      features
+      features,
+      featureHighlights
     });
 
     const imageUrl = await fetchCoverImage(imageKeyword);
@@ -60,4 +65,13 @@ export async function scheduledBlog() {
     console.error("❌ 自動投稿エラー:", err);
     return { success: false, error: String(err) };
   }
+}
+if (require.main === module) {
+  scheduledBlog()
+    .then(() => {
+      console.log("✅ scheduledBlog 処理完了");
+    })
+    .catch(err => {
+      console.error("❌ scheduledBlog 実行エラー:", err);
+    });
 }

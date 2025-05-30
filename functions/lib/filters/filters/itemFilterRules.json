@@ -1,6 +1,16 @@
 {
-  "excludeKeywords": ["ジャンク", "訳あり", "破損", "保証なし"],
-  "preferredBrands": ["AKRacing", "GTRACING", "Dowinx", "GTPLAYER"],
-  "minPrice": 10000,
-  "maxPrice": 50000
+  "excludeKeywords": ["ジャンク", "訳あり", "破損", "保証なし", "部品のみ"],
+  "preferredBrands": [
+    "Anker",
+    "Belkin",
+    "Apple",
+    "エレコム",
+    "AUKEY",
+    "RAVPower",
+    "サンワサプライ",
+    "cicibella",
+    "シシベラ"
+  ],
+  "minPrice": 800,
+  "maxPrice": 8000
 }

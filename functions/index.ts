@@ -22,7 +22,7 @@ export const selectMonitoredDaily = functions.pubsub
   });
 
 export const generateBlogDailyV1 = functions.pubsub
-  .schedule("0 6 * * *") // 毎日朝6時（JST）
+  .schedule("0 6 * * *") // JST 毎日朝6時
   .timeZone("Asia/Tokyo")
   .onRun(async () => {
     console.log("🕒 [Cron] Generating blog (v1)...");

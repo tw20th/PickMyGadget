@@ -6,7 +6,7 @@ import { fetchRakutenItems } from "./utils/fetchRakutenItems";
 
 export async function scheduledRakuten(): Promise<{ success: boolean; error?: string }> {
   try {
-    const keywords = ["ゲーミングチェア", "デスクライト"];
+    const keywords = ["スマホスタンド", "モバイルバッテリー", "ワイヤレス充電器"];
     for (const keyword of keywords) {
       console.log(`🔍 キーワード: ${keyword}`);
       await fetchRakutenItems(keyword);

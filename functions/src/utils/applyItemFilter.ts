@@ -4,7 +4,7 @@ import path from "path";
 const rulePath = path.resolve(__dirname, "../../filters/itemFilterRules.json");
 const rules = JSON.parse(fs.readFileSync(rulePath, "utf-8"));
 
-export function isItemEligible(item: { itemName: string; price: string }): boolean {
+export function isItemEligible(item: { itemName: string; price: number }): boolean {
   const name = item.itemName || "";
   const price = Number(item.price);
 

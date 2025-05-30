@@ -1,6 +1,7 @@
 {
   "projects": {
-    "default": "product-blog-generator-1d7d7"
+    "default": "product-blog-generator-1d7d7",
+    "pickmygadget": "pickmygadget-88547"
   },
   "targets": {},
   "etags": {}

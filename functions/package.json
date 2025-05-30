@@ -16,11 +16,13 @@
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.4.0",
     "prettier": "^3.5.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "tsx": "^4.7.0"
   },
   "scripts": {
     "lint": "eslint .",
     "build": "tsc",
-    "postbuild": "cp -r filters lib/filters"
+    "postbuild": "cp -r filters lib/filters",
+    "generate:persona": "tsx src/scripts/generatePersonaOnce.ts"
   }
 }
