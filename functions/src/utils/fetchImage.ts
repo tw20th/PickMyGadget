@@ -1,15 +1,11 @@
 import fetch from "node-fetch";
 import * as dotenv from "dotenv";
-dotenv.config(); // ← ローカル用に必須
+dotenv.config();
 
 import { config } from "firebase-functions";
 
-// ✅ ローカル優先 → Firebase の順で参照
 const accessKey = process.env.UNSPLASH_ACCESS_KEY || config()?.unsplash?.access_key;
-
-if (!accessKey) {
-  throw new Error("Unsplash APIキーが未設定です");
-}
+if (!accessKey) throw new Error("Unsplash APIキーが未設定です");
 
 type UnsplashResponse = {
   results: {
@@ -26,9 +22,7 @@ export async function fetchCoverImage(keyword: string): Promise<string> {
   )}&client_id=${accessKey}`;
 
   const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Unsplash API request failed: ${res.status}`);
-  }
+  if (!res.ok) throw new Error(`Unsplash API request failed: ${res.status}`);
 
   const data = (await res.json()) as UnsplashResponse;
 

@@ -1,12 +1,12 @@
-// functions/src/scheduledSelectMonitored.ts
 import { db } from "../src/firebaseAdmin";
 import { isItemEligible } from "../src/utils/applyItemFilter";
 import { updatePriceHistory } from "../src/utils/updatePriceHistory";
 import { extractTagsFromFeatures } from "../src/utils/extractTags";
+import { fetchCoverImage } from "../src/utils/fetchImage";
 import { OpenAI } from "openai";
 import dotenv from "dotenv";
 
-dotenv.config(); // ← これを追加（.envを読み込む）
+dotenv.config();
 
 const apiKey = process.env.OPENAI_API_KEY;
 if (!apiKey) throw new Error("OpenAI APIキーが設定されていません");
@@ -18,8 +18,27 @@ type RakutenItem = {
   itemName: string;
   price: number;
   productKeyword?: string;
+  imageUrl?: string;
 };
 
+// ✅ カテゴリー推定関数（featureHighlightsから分類）
+function inferCategory(featureHighlights: string[]): string {
+  const text = featureHighlights.join(" ").toLowerCase();
+
+  if (text.includes("モバイルバッテリー")) return "モバイルバッテリー";
+  if (text.includes("ワイヤレス充電器")) return "ワイヤレス充電器";
+  if (text.includes("スタンド")) return "スマホスタンド";
+  if (text.includes("キーボード")) return "キーボード";
+  if (text.includes("マウス")) return "マウス";
+  if (text.includes("usb") || text.includes("ハブ")) return "USBハブ";
+  if (text.includes("ケーブル")) return "充電ケーブル";
+  if (text.includes("イヤホン") || text.includes("ヘッドホン")) return "オーディオ";
+  if (text.includes("ケース")) return "スマホケース";
+
+  return "その他";
+}
+
+// ✅ 商品名から特徴を抽出する処理
 async function extractFeatureHighlightsFromName(name: string): Promise<string[]> {
   const prompt = `
 以下の商品名から、ユーザーが注目しそうな特徴を5つ箇条書きで抽出してください。
@@ -49,6 +68,7 @@ async function extractFeatureHighlightsFromName(name: string): Promise<string[]>
   }
 }
 
+// ✅ メイン処理
 export async function scheduledSelectMonitored() {
   console.log("🟢 selectMonitored 処理開始");
 
@@ -61,7 +81,8 @@ export async function scheduledSelectMonitored() {
       id: doc.id,
       itemName: data.itemName,
       price: Number(data.price),
-      productKeyword: data.productKeyword
+      productKeyword: data.productKeyword,
+      imageUrl: data.imageUrl
     };
   });
 
@@ -74,20 +95,29 @@ export async function scheduledSelectMonitored() {
       console.log(`📌 処理中: ${item.itemName}`);
 
       const featureHighlights = await extractFeatureHighlightsFromName(item.itemName);
-      console.log(`🧠 特徴抽出: ${featureHighlights.join(" / ")}`);
-
       const tags = await extractTagsFromFeatures(featureHighlights);
-      console.log(`🏷 タグ抽出: ${tags.join(", ")}`);
+      const imageKeyword = item.productKeyword || "スマホアクセサリー";
+      const category = inferCategory(featureHighlights);
+
+      const rakutenDoc = await db.collection("rakutenItems").doc(item.id).get();
+      let imageUrl = rakutenDoc.data()?.imageUrl || "";
+
+      if (!imageUrl) {
+        console.log("📷 画像なし → Unsplashから取得:", imageKeyword);
+        imageUrl = await fetchCoverImage(imageKeyword);
+      }
 
       const monitoredRef = await db.collection("monitoredItems").add({
         productName: item.itemName,
         price: item.price,
         features: "人気のスマホ周辺機器",
-        imageKeyword: item.productKeyword || "スマホアクセサリー",
+        imageKeyword,
         fromRakutenItemId: item.id,
+        imageUrl,
         score: 0,
         tag: tags,
         featureHighlights,
+        category,
         createdAt: now.toISOString()
       });
 
@@ -100,6 +130,8 @@ export async function scheduledSelectMonitored() {
 
   console.log(`🏁 完了: ${selected.length} 件を monitoredItems に登録`);
 }
+
+// 🔁 単体実行時
 if (require.main === module) {
   scheduledSelectMonitored()
     .then(() => {

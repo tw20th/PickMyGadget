@@ -1,54 +1,58 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import { useMonitoredItems } from "@/hooks/useMonitoredItems";
-import { ProductCard } from "@/components/product/ProductCard";
-import { motion } from "framer-motion";
+import { SortToggle } from "@/components/ranking/SortToggle";
+import { RankingFilterBar } from "@/components/ranking/RankingFilterBar";
+import { ScoreChart } from "@/components/ranking/ScoreChart";
+import { ProductList } from "@/components/product/ProductList";
 
 export default function RankingPage() {
   const { items, loading } = useMonitoredItems();
+  const [sortKey, setSortKey] = useState<"score" | "price">("score");
+  const [filterTag, setFilterTag] = useState<string | null>(null);
 
-  const sorted = [...items].sort((a, b) => b.score - a.score).reverse();
+  const filteredItems = useMemo(() => {
+    return items.filter((item) =>
+      filterTag ? item.tag?.includes(filterTag) : true
+    );
+  }, [items, filterTag]);
+
+  const sorted = useMemo(() => {
+    return [...filteredItems].sort((a, b) =>
+      sortKey === "score"
+        ? b.score - a.score
+        : parseInt(b.price) - parseInt(a.price)
+    );
+  }, [filteredItems, sortKey]);
+
+  const allTags = Array.from(new Set(items.flatMap((item) => item.tag ?? [])));
 
   return (
-    <main className="p-4 space-y-6">
-      <h1 className="text-2xl font-bold">人気ランキング（スコア順）</h1>
+    <main className="p-4 max-w-6xl mx-auto space-y-6">
+      <h1 className="text-2xl font-bold">
+        人気ランキング（{sortKey === "score" ? "スコア順" : "価格順"}）
+      </h1>
+
+      <SortToggle sortKey={sortKey} onChange={setSortKey} />
+      <RankingFilterBar
+        tags={allTags}
+        selected={filterTag}
+        onSelect={setFilterTag}
+      />
+      <ScoreChart
+        scores={sorted.map((item) => ({
+          name: item.productName.slice(0, 10),
+          score: item.score,
+        }))}
+      />
 
       {loading ? (
         <div>読み込み中...</div>
       ) : sorted.length === 0 ? (
         <div>商品データがありません</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sorted.map((item, index) => (
-            <motion.div
-              key={item.id}
-              className="relative"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-            >
-              <motion.span
-                layoutId={`rank-${index + 1}`}
-                className="absolute -top-2 -left-2 bg-yellow-400 text-white text-xs px-2 py-1 rounded-full shadow-md z-10"
-              >
-                #{index + 1}
-              </motion.span>
-
-              <ProductCard
-                id={item.id}
-                productName={item.productName}
-                price={item.price}
-                imageUrl={
-                  item.imageUrl ??
-                  `/images/${item.imageKeyword ?? "no-image"}.jpg`
-                }
-                score={item.score}
-                featureHighlights={item.featureHighlights}
-                tag={item.tag}
-              />
-            </motion.div>
-          ))}
-        </div>
+        <ProductList products={sorted} title="ランキング結果" showMedals />
       )}
     </main>
   );

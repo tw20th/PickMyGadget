@@ -12,6 +12,7 @@ type ProductCardProps = {
   score: number;
   featureHighlights?: string[];
   tag?: string[];
+  rank?: number; // 🥇ランキングメダル用
 };
 
 export const ProductCard = ({
@@ -22,14 +23,24 @@ export const ProductCard = ({
   score,
   featureHighlights,
   tag,
+  rank,
 }: ProductCardProps) => {
+  const medal = {
+    1: "🥇",
+    2: "🥈",
+    3: "🥉",
+  }[rank ?? 0];
+
   const card = (
     <motion.div
-      className="bg-white shadow-md rounded-2xl overflow-hidden p-4 flex flex-col gap-2 hover:shadow-lg transition"
+      className="bg-white shadow-md rounded-2xl overflow-hidden p-4 flex flex-col gap-2 hover:shadow-lg transition relative"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
+      {/* 🏅 メダルバッジ */}
+      {medal && <span className="absolute top-2 left-2 text-2xl">{medal}</span>}
+
       <div className="w-full h-48 relative">
         <Image
           src={imageUrl}
@@ -65,12 +76,13 @@ export const ProductCard = ({
       {Array.isArray(tag) && tag.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-2">
           {tag.map((t) => (
-            <span
+            <Link
               key={t}
-              className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-md"
+              href={`/category/${encodeURIComponent(t)}`}
+              className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-md hover:underline"
             >
               #{t}
-            </span>
+            </Link>
           ))}
         </div>
       )}

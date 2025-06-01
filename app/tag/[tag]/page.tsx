@@ -1,39 +1,61 @@
+// app/tag/[tag]/page.tsx
 "use client";
 
 import { useParams } from "next/navigation";
 import { useMonitoredItems } from "@/hooks/useMonitoredItems";
-import { ProductCard } from "@/components/product/ProductCard";
 import { usePagination } from "@/hooks/usePagination";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MonitoredItem } from "@/types/item";
 import { SearchInput } from "@/components/common/SearchInput";
+import { CategoryFilterBar } from "@/components/category/CategoryFilterBar";
+import { ProductList } from "@/components/product/ProductList";
 
-export default function CategoryPage() {
+export default function TagPage() {
   const { tag } = useParams();
+  const decodedTag = decodeURIComponent(String(tag));
   const { items, loading } = useMonitoredItems();
   const [filtered, setFiltered] = useState<MonitoredItem[]>([]);
   const [keyword, setKeyword] = useState("");
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
 
   useEffect(() => {
-    if (!loading && typeof tag === "string") {
+    if (!loading && decodedTag) {
       const matched = items.filter(
-        (item) => Array.isArray(item.tag) && item.tag.includes(tag)
+        (item) => Array.isArray(item.tag) && item.tag.includes(decodedTag)
       );
       setFiltered(matched);
     }
-  }, [tag, items, loading]);
+  }, [decodedTag, items, loading]);
 
-  const searched = filtered.filter((item) => {
-    const keywordLower = keyword.toLowerCase();
-    return (
-      item.productName.toLowerCase().includes(keywordLower) ||
-      (Array.isArray(item.tag) &&
-        item.tag.some((t) => t.toLowerCase().includes(keywordLower))) ||
-      item.featureHighlights?.some((f) =>
-        f.toLowerCase().includes(keywordLower)
-      )
-    );
-  });
+  const searched = useMemo(() => {
+    const lower = keyword.toLowerCase();
+    return filtered
+      .filter((item) => {
+        return (
+          item.productName.toLowerCase().includes(lower) ||
+          item.featureHighlights?.some((f) =>
+            f.toLowerCase().includes(lower)
+          ) ||
+          item.tag?.some((t) => t.toLowerCase().includes(lower))
+        );
+      })
+      .sort((a, b) =>
+        sortOrder === "desc" ? b.score - a.score : a.score - b.score
+      );
+  }, [filtered, keyword, sortOrder]);
+
+  const tagCounts = items.reduce<Record<string, number>>((acc, item) => {
+    if (Array.isArray(item.tag)) {
+      item.tag.forEach((t) => {
+        acc[t] = (acc[t] || 0) + 1;
+      });
+    }
+    return acc;
+  }, {});
+  const tagsWithCount = Object.entries(tagCounts).map(([tag, count]) => ({
+    tag,
+    count,
+  }));
 
   const {
     paginatedItems,
@@ -48,29 +70,32 @@ export default function CategoryPage() {
 
   return (
     <main className="p-4 space-y-6">
-      <h1 className="text-2xl font-bold">カテゴリ：{tag}</h1>
+      <h1 className="text-2xl font-bold">タグ：{decodedTag}</h1>
+
+      <CategoryFilterBar items={tagsWithCount} active={decodedTag} type="tag" />
 
       <SearchInput keyword={keyword} onChange={setKeyword} />
+
+      <div className="flex items-center gap-4 text-sm">
+        <span>並び順：</span>
+        <button
+          onClick={() =>
+            setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"))
+          }
+          className="px-3 py-1 border rounded-md hover:bg-gray-50"
+        >
+          スコア {sortOrder === "desc" ? "高い順 ↓" : "低い順 ↑"}
+        </button>
+      </div>
 
       {searched.length === 0 ? (
         <div>該当する商品が見つかりませんでした。</div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {paginatedItems.map((item) => (
-              <ProductCard
-                key={item.id}
-                id={item.id}
-                productName={item.productName}
-                price={item.price}
-                imageUrl={item.imageUrl ?? `/images/${item.imageKeyword}.jpg`} // ✅ fallback付きで安全に渡す
-                score={item.score}
-                featureHighlights={item.featureHighlights}
-                tag={item.tag}
-              />
-            ))}
-          </div>
-
+          <ProductList
+            products={paginatedItems}
+            title={`タグ：${decodedTag}`}
+          />
           <div className="flex justify-center items-center gap-2 mt-6">
             <button
               onClick={goToPrev}

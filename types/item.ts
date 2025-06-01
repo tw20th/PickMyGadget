@@ -7,9 +7,10 @@ export type MonitoredItem = {
   tag?: string[];
   fromRakutenItemId?: string;
   priceHistory?: { date: string; price: number }[];
-
-  // ✅ 以下を追加
   imageKeyword?: string;
   imageUrl?: string;
   itemUrl?: string;
+
+  // ✅ 追加
+  category?: string;
 };

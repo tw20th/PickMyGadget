@@ -1,28 +1,24 @@
+// components/common/CategoryButtons.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
-
-const CATEGORIES = [
-  "ゲーミングチェア",
-  "在宅ワーク",
-  "GTRacing",
-  "Dowinx",
-  "子供向け",
-  "姿勢改善",
-];
+import { useCategoryCounts } from "@/hooks/useCategoryCounts";
 
 export const CategoryButtons = () => {
   const router = useRouter();
+  const categories = useCategoryCounts();
 
   return (
     <div className="flex flex-wrap gap-2">
-      {CATEGORIES.map((tag) => (
+      {categories.map(({ category, count }) => (
         <button
-          key={tag}
-          onClick={() => router.push(`/category/${encodeURIComponent(tag)}`)}
+          key={category}
+          onClick={() =>
+            router.push(`/category/${encodeURIComponent(category)}`)
+          }
           className="text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-full hover:bg-gray-200"
         >
-          #{tag}
+          #{category}（{count}）
         </button>
       ))}
     </div>

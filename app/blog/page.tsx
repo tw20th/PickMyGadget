@@ -3,21 +3,25 @@
 import { useBlogs } from "@/hooks/useBlogs";
 import { BlogCard } from "@/components/blog/BlogCard";
 import { TagList } from "@/components/blog/TagList";
-import { useSortedBlogs } from "@/hooks/useSortedBlogs";
+import { useSortedBlogs, BlogSortOption } from "@/hooks/useSortedBlogs";
 import { usePagination } from "@/hooks/usePagination";
 import { useState } from "react";
 import { SearchInput } from "@/components/common/SearchInput";
-import { motion } from "framer-motion"; // ✅ 追加
+import { BlogCardSkeleton } from "@/components/blog/BlogCardSkeleton";
+import { motion } from "framer-motion";
 
 export default function BlogPage() {
   const { blogs, loading } = useBlogs();
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [keyword, setKeyword] = useState("");
+  const [sortOption, setSortOption] = useState<BlogSortOption>("latest");
 
-  const sorted = useSortedBlogs(blogs, "latest");
+  const sorted = useSortedBlogs(blogs, sortOption);
 
   const filtered = sorted.filter((b) => {
-    const matchesTag = selectedTag ? b.tags.includes(selectedTag) : true;
+    const matchesTag = selectedTag
+      ? (b.tags ?? []).includes(selectedTag)
+      : true;
     const matchesKeyword =
       keyword === "" ||
       b.title.toLowerCase().includes(keyword.toLowerCase()) ||
@@ -40,6 +44,20 @@ export default function BlogPage() {
 
       <SearchInput keyword={keyword} onChange={setKeyword} />
 
+      <div className="flex justify-end mb-2">
+        <select
+          value={sortOption}
+          onChange={(e) => {
+            setSortOption(e.target.value as BlogSortOption);
+            goToPage(1);
+          }}
+          className="border rounded px-3 py-1 text-sm"
+        >
+          <option value="latest">🆕 新着順</option>
+          <option value="viewsDesc">🔥 人気順</option>
+        </select>
+      </div>
+
       <TagList
         tags={blogs.flatMap((b) => b.tags)}
         selected={selectedTag}
@@ -50,7 +68,11 @@ export default function BlogPage() {
       />
 
       {loading ? (
-        <div>読み込み中...</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <BlogCardSkeleton key={i} />
+          ))}
+        </div>
       ) : filtered.length === 0 ? (
         <div>該当する記事がありません</div>
       ) : (

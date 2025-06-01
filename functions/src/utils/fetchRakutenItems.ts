@@ -8,14 +8,9 @@ dotenv.config();
 const applicationId = config().rakuten?.app_id ?? process.env.RAKUTEN_APP_ID;
 const affiliateId = config().rakuten?.affiliate_id ?? process.env.RAKUTEN_AFFILIATE_ID;
 
-if (!applicationId) {
-  throw new Error("Rakuten Application ID が未設定です");
-}
-if (!affiliateId) {
-  throw new Error("Rakuten Affiliate ID が未設定です");
-}
+if (!applicationId) throw new Error("Rakuten Application ID が未設定です");
+if (!affiliateId) throw new Error("Rakuten Affiliate ID が未設定です");
 
-// ✅ Rakuten API レスポンス型を定義
 type RakutenResponse = {
   Items: {
     Item: {
@@ -50,7 +45,7 @@ export async function fetchRakutenItems(keyword: string): Promise<void> {
       price: item.itemPrice,
       imageUrl: item.mediumImageUrls?.[0]?.imageUrl ?? "",
       itemUrl: item.itemUrl,
-      affiliateUrl: item.affiliateUrl ?? "", // ✅ アフィリエイトリンクも保存
+      affiliateUrl: item.affiliateUrl ?? "",
       createdAt: now.toISOString()
     });
 

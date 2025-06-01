@@ -5,8 +5,10 @@ import { db } from "@/lib/firebaseClient";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { useParams } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { PriceChart } from "@/components/product/PriceChart";
 import { ProductCard } from "@/components/product/ProductCard";
+import { TwitterShareButton } from "@/components/common/SnsShare";
 import { MonitoredItem } from "@/types/item";
 import { motion } from "framer-motion";
 
@@ -58,6 +60,14 @@ export default function ProductDetailPage() {
 
   return (
     <main className="p-4 max-w-2xl mx-auto space-y-6">
+      {/* ← 戻るリンク */}
+      <Link
+        href="/"
+        className="inline-block text-blue-600 text-sm hover:underline mb-2"
+      >
+        ← 一覧に戻る
+      </Link>
+
       <h1 className="text-2xl font-bold">{monitored.productName}</h1>
 
       <div className="relative w-full h-64 rounded-xl overflow-hidden">
@@ -97,6 +107,7 @@ export default function ProductDetailPage() {
         ))}
       </div>
 
+      {/* 楽天リンク */}
       {itemUrl && (
         <a
           href={itemUrl}
@@ -108,6 +119,15 @@ export default function ProductDetailPage() {
         </a>
       )}
 
+      {/* SNSシェアボタン */}
+      {itemUrl && (
+        <TwitterShareButton
+          url={itemUrl}
+          title={`${monitored.productName} をチェック！`}
+        />
+      )}
+
+      {/* 価格履歴 + グラフ */}
       {Array.isArray(monitored.priceHistory) && (
         <div className="mt-6">
           <h2 className="font-bold text-sm mb-2">価格履歴</h2>
