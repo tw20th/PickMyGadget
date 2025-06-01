@@ -1,17 +1,13 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
-    "esModuleInterop": true,
-    "moduleResolution": "nodenext",
-    "noImplicitReturns": true,
-    "noUnusedLocals": true,
-    "outDir": "lib",
-    "sourceMap": true,
-    "strict": true,
     "target": "es2020",
-    "types": ["node"],
-    "resolveJsonModule": true
+    "module": "commonjs",
+    "lib": ["es2020"],
+    "strict": true,
+    "esModuleInterop": true,
+    "outDir": "lib",
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
   },
-  "compileOnSave": true,
-  "include": ["src", "index.ts", "src/types", "scripts/**/*.ts", "lib"]
+  "include": ["src", "index.ts", "scripts"]
 }

@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import { generateBlogContent } from "./prompts/blogPrompt";
 import { fetchCoverImage } from "./utils/fetchImage";
 import { postBlog } from "./utils/postBlog";

@@ -11,25 +11,26 @@ module.exports = {
     "plugin:import/typescript",
     "google",
     "plugin:@typescript-eslint/recommended",
-    "plugin:prettier/recommended", // ← 追加
-    "prettier" // ← 最後に追加することで競合解消
+    "plugin:prettier/recommended",
+    "prettier"
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {
     project: ["tsconfig.json"],
     sourceType: "module"
   },
-  ignorePatterns: ["/lib/**/*", "/generated/**/*", ".eslintrc.js"],
-  plugins: [
-    "@typescript-eslint",
-    "import",
-    "prettier" // ← 追加
+  ignorePatterns: [
+    "/lib/**/*",
+    "/generated/**/*",
+    ".eslintrc.js",
+    "functions/**" // ← これを追加
   ],
+  plugins: ["@typescript-eslint", "import", "prettier"],
   rules: {
-    "prettier/prettier": "error", // ← PrettierのルールもESLintエラーとして扱う
+    "prettier/prettier": "error",
     quotes: ["error", "double"],
     "import/no-unresolved": 0,
     indent: ["error", 2],
-    "require-jsdoc": "off" // 👈 JSDoc 警告を無効化
+    "require-jsdoc": "off"
   }
 };

@@ -6,7 +6,7 @@ export async function generatePersona(category: string): Promise<string> {
   const prompt = personaPromptTemplate.replace(/{{PRODUCT_CATEGORY}}/g, category);
 
   const res = await openai.chat.completions.create({
-    model: "gpt-4",
+    model: "gpt-3.5-turbo",
     messages: [{ role: "user", content: prompt }],
     temperature: 0.8 // 少しバリエーションを出す設定
   });

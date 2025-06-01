@@ -51,7 +51,7 @@ export async function generateBlogContent({
   });
 
   const res = await openai.chat.completions.create({
-    model: "gpt-4",
+    model: "gpt-3.5-turbo-16k", // ← 長文対応（最大16K tokens）
     messages: [{ role: "user", content: filledPrompt }]
   });
 
