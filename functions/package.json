@@ -22,7 +22,12 @@
   "scripts": {
     "lint": "eslint .",
     "build": "tsc",
-    "postbuild": "cp -r filters lib/filters",
+    "postbuild": "cp -r filters lib/filters && mkdir -p lib/prompts && cp prompts/blogPromptTemplate.txt lib/prompts/",
     "generate:persona": "tsx src/scripts/generatePersonaOnce.ts"
-  }
+  },
+  "files": [
+    "lib",
+    "filters",
+    "prompts"
+  ]
 }

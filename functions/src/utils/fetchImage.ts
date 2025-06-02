@@ -5,8 +5,12 @@ dotenv.config();
 import { config } from "firebase-functions";
 import { cleanImageKeyword } from "./cleanImageKeyword"; // ✅ 追加
 
-const accessKey = process.env.UNSPLASH_ACCESS_KEY || config()?.unsplash?.access_key;
-if (!accessKey) throw new Error("Unsplash APIキーが未設定です");
+const accessKey = process.env.UNSPLASH_ACCESS_KEY || config().unsplash?.access_key;
+
+if (!accessKey) {
+  console.error("❌ Unsplash APIキーが未設定です");
+  throw new Error("Unsplash APIキーが未設定です");
+}
 
 type UnsplashResponse = {
   results: {
